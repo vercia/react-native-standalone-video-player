@@ -8,7 +8,7 @@ RCT_EXTERN_METHOD(newInstance);
 
 RCT_EXTERN_METHOD(load: (NSInteger)instance withUrl: (NSString*)url withHls: (BOOL)isHls withLoop: (BOOL)loop withSilent: (BOOL)silent);
 
-RCT_EXTERN_METHOD(seek: (NSInteger)instance toPosition: (nonnull NSNumber*)position);
+RCT_EXTERN_METHOD(seek: (NSInteger)instance toPosition: (nonnull double*)position);
 
 RCT_EXTERN_METHOD(seekForward: (NSInteger)instance withTime: (nonnull NSNumber*)time);
 

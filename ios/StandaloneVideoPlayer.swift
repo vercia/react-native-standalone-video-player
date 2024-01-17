@@ -22,6 +22,7 @@ class StandaloneVideoPlayer: RCTEventEmitter {
         guard instance >= 0 && instance < PlayerVideo.instances.count else { return }
         
         let player = PlayerVideo.instances[instance]
+        player.shouldRecordingLoop = loop
         
         player.statusChanged = { status in
             self.sendEvent(withName: "PlayerStatusChanged", body: ["status" : status.rawValue, "instance": instance])

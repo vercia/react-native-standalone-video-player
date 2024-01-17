@@ -53,7 +53,7 @@ class PlayerVideo: NSObject {
   private var observersAdded = false
   
   private var shouldLoop = true
-  
+
   // we could have one AVPlayer and multiple items
   let player: AVPlayer = AVPlayer()
   
@@ -102,6 +102,13 @@ class PlayerVideo: NSObject {
   var autoplay: Bool = true {
     didSet {
       shouldPlay = autoplay
+    }
+  }
+
+  @objc
+  var shouldRecordingLoop: Bool = true {
+    didSet {
+        shouldLoop = shouldRecordingLoop
     }
   }
   
@@ -282,6 +289,7 @@ class PlayerVideo: NSObject {
           self?.seekToZero()
           self?.play()
         } else {
+          self?.seekToZero()
           self?.setStatus(.stoped)
         }
       }
