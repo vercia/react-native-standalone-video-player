@@ -289,8 +289,7 @@ class PlayerVideo: NSObject {
           self?.seekToZero()
           self?.play()
         } else {
-          self?.seekToZero()
-          self?.setStatus(.stoped)
+          self?.stop()
         }
       }
     }
