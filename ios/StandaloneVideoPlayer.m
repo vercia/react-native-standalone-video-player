@@ -10,9 +10,9 @@ RCT_EXTERN_METHOD(load: (NSInteger)instance withUrl: (NSString*)url withHls: (BO
 
 RCT_EXTERN_METHOD(seek: (NSInteger)instance toPosition: (nonnull double*)position);
 
-RCT_EXTERN_METHOD(seekForward: (NSInteger)instance withTime: (nonnull NSNumber*)time);
+RCT_EXTERN_METHOD(seekForward: (NSInteger)instance withTime: (nonnull double*)time);
 
-RCT_EXTERN_METHOD(seekRewind: (NSInteger)instance withTime: (nonnull NSNumber*)time);
+RCT_EXTERN_METHOD(seekRewind: (NSInteger)instance withTime: (nonnull double*)time);
 
 RCT_EXTERN_METHOD(play: (NSInteger)instance);
 
