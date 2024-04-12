@@ -86,6 +86,11 @@ function clearPlayerVideo() {
 
 function getVideoDuration(playerInstance = 0): Promise<number> {
   return new Promise((resolve) => {
+    if (!PlayerVideoManager.getDuration) {
+      console.warn('getDuration not implemented');
+      resolve(0);
+    }
+
     PlayerVideoManager.getDuration(playerInstance)
       .then((val) => resolve(val || 0))
       .catch(() => resolve(0));
@@ -96,6 +101,11 @@ function getVideoDuration(playerInstance = 0): Promise<number> {
 
 function getVideoProgress(playerInstance = 0): Promise<number> {
   return new Promise((resolve) => {
+    if (!PlayerVideoManager.getProgress) {
+      console.warn('getProgress not implemented');
+      resolve(0);
+    }
+
     PlayerVideoManager.getProgress(playerInstance)
       .then((val) => resolve(val || 0))
       .catch(() => resolve(0));
