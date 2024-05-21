@@ -93,7 +93,9 @@ function getVideoDuration(playerInstance = 0): Promise<number> {
 
     PlayerVideoManager.getDuration(playerInstance)
       .then((val) => resolve(val || 0))
-      .catch(() => resolve(0));
+      .catch(() => {
+        resolve(0);
+      });
   });
 }
 
@@ -108,7 +110,9 @@ function getVideoProgress(playerInstance = 0): Promise<number> {
 
     PlayerVideoManager.getProgress(playerInstance)
       .then((val) => resolve(val || 0))
-      .catch(() => resolve(0));
+      .catch(() => {
+        resolve(0)
+      });
   });
 }
 
@@ -232,6 +236,11 @@ const PlayerInfo = {
   ],
 };
 
+type PlayerStatusChangedData = {
+  instance: number;
+  status: number;
+};
+
 function usePlayerVideoStatus(playerInstance = 0, recordingId?: string) {
   // get current status
   const [status, setStatus] = useState(PlayerInfo.lastStatus[playerInstance]);
@@ -239,19 +248,20 @@ function usePlayerVideoStatus(playerInstance = 0, recordingId?: string) {
   useEffect(() => {
     const subscription = eventEmitter.addListener(
       'PlayerStatusChanged',
-      (data) => {
+      (data: PlayerStatusChangedData) => {
         if (data.instance === playerInstance) {
           if (!recordingId || recordingId === CurrentVideoId[playerInstance]) {
-            PlayerInfo.lastStatus[playerInstance] = createStatus(data.status);
+            const newStatus = createStatus(data.status);
 
-            setStatus(createStatus(data.status));
+            PlayerInfo.lastStatus[playerInstance] = newStatus;
+            setStatus(newStatus);
           }
         }
       }
     );
 
     return () => subscription.remove();
-  }, [playerInstance, recordingId]);
+  }, [playerInstance, recordingId, status]);
 
   const forceLoadingStatus = () => {
     setStatus(PlayerStatus.loading);

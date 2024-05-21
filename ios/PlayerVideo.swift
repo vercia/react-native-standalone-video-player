@@ -135,6 +135,7 @@ class PlayerVideo: NSObject {
         
       return
     }
+    removeObservers()
     
     let asset = AVAsset(url: videoUrl)
     
