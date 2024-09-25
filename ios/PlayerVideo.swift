@@ -51,8 +51,12 @@ class PlayerVideo: NSObject {
   private var timeObserver: Any?
   
   private var observersAdded = false
+  private var timer: Timer?
+  private var timerAdded = false
   
   private var shouldLoop = true
+
+  private let DEBUG = false
 
   // we could have one AVPlayer and multiple items
   let player: AVPlayer = AVPlayer()
@@ -123,10 +127,22 @@ class PlayerVideo: NSObject {
   }
   
   //
+    
+    private let TAG = "PLAAAYER"
+    
+    private func log(_ text: String) {
+        if(!DEBUG) {return}
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss.SSS"
+        let timestamp = dateFormatter.string(from: Date())
+        
+        print("\(TAG) [\(timestamp)] \(text)")
+    }
   
   @objc
   func load(url: String) {
-    print("PLAAAYER load url: \(url)")
+      log("load url: \(url)")
 
     shouldPlay = autoplay
     
@@ -135,7 +151,6 @@ class PlayerVideo: NSObject {
         
       return
     }
-    removeObservers()
     
     let asset = AVAsset(url: videoUrl)
     
@@ -150,7 +165,7 @@ class PlayerVideo: NSObject {
   
   @objc
   func play() {
-    print("PLAAAYER play")
+      log("play")
     
     player.play()
       
@@ -161,7 +176,7 @@ class PlayerVideo: NSObject {
   
   @objc
   func pause() {
-    print("PLAAAYER pause")
+      log("pause")
     
     player.pause()
     
@@ -172,7 +187,7 @@ class PlayerVideo: NSObject {
   
   @objc
   func stop() {
-    print("PLAAAYER stop")
+      log("stop")
     
     player.pause()
     
@@ -190,7 +205,7 @@ class PlayerVideo: NSObject {
   // 0 <= position <= 1.0
   @objc
   func seekTo(position: Double) {
-    print("PLAAAYER SEEEEK TO = \(position)")
+      log("SEEEEK TO = \(position)")
     
     let progress = min(1.0, max(0.0, position))
     
@@ -209,7 +224,7 @@ class PlayerVideo: NSObject {
       
         player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: { [weak self] (finished) in
           
-          print("PLAAAYER SEEEEK TO = \(position), finished=\(finished)")
+            self?.log("SEEEEK TO = \(position), finished=\(finished)")
 
           if finished == false {
             // seek started
@@ -244,8 +259,6 @@ class PlayerVideo: NSObject {
   
   deinit {
     stop()
-    
-    removeObservers()
   }
   
   
@@ -260,7 +273,7 @@ class PlayerVideo: NSObject {
   }
   
   private func setStatus(_ newStatus: PlayerVideoStatus) {
-    print("PLAAAYER: NEW STATUS = ", newStatus.print())
+      log("NEW STATUS = \(newStatus.print())")
     
     self.status = newStatus
     
@@ -268,48 +281,69 @@ class PlayerVideo: NSObject {
   }
   
   private func addObservers() {
+      log("videoPlayer addObservers")
     guard let playerItem = player.currentItem else { return }
-    
+      
     playerItem.addObserver(self, forKeyPath: "status", options: [], context: nil)
     playerItem.addObserver(self, forKeyPath: "playbackBufferEmpty", options: [], context: nil)
     playerItem.addObserver(self, forKeyPath: "playbackLikelyToKeepUp", options: [], context: nil)
-    
-    let interval = CMTime(seconds: 1, preferredTimescale: Int32(NSEC_PER_SEC))
-    timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: nil) { [weak self] (time) in
-      guard let strongSelf = self, strongSelf.status == .playing else { return }
-
-      let currentTime = time.seconds
-      let progress = currentTime / (strongSelf.duration != 0.0 ? strongSelf.duration : 1.0)
-
-      if (!strongSelf.isSeeking) {
-        self?.progressChanged?(progress, strongSelf.duration)
-      }
       
-      if (progress >= 0.99) {
-        if (strongSelf.shouldLoop) {
-          self?.seekToZero()
-          self?.play()
-        } else {
-          self?.stop()
-        }
+      observersAdded = true
+      
+      if(!timerAdded){
+          startTimeObserver()
       }
-    }
-    
-    observersAdded = true
   }
+    
+    private func startTimeObserver() {
+        let interval = CMTime(seconds: 1, preferredTimescale: Int32(NSEC_PER_SEC))
+        
+        timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: nil, using: handleTick)
+        timerAdded = true
+    }
+
+    private func stopTimer() {
+        guard let _timeObserver = timeObserver  else {return}
+        
+        player.removeTimeObserver(_timeObserver)
+        timerAdded = false
+    }
+
+    
+    private func handleTick(time: CMTime) {
+        guard self.status == .playing else {return}
+
+          self.log("interval run")
+        let currentTime = time.seconds
+        let progress = currentTime / (self.duration != 0.0 ? self.duration : 1.0)
+
+        if (!self.isSeeking) {
+          self.progressChanged?(progress, self.duration)
+        }
+        
+        if (progress >= 0.99) {
+          if (self.shouldLoop) {
+            self.log("video playback end")
+            self.seekToZero()
+            self.play()
+          } else {
+            self.stop()
+          }
+        }
+    }
   
   private func removeObservers() {
     guard let playerItem = player.currentItem else { return }
     
+    log("remove observers")
+      
     guard observersAdded else { return } // dont remove when not added
     
     playerItem.removeObserver(self, forKeyPath: "status")
     playerItem.removeObserver(self, forKeyPath: "playbackBufferEmpty")
     playerItem.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
     
-    if let observer = timeObserver {
-      player.removeTimeObserver(observer)
-    }
+    stopTimer()
     
     observersAdded = false
   }
@@ -324,7 +358,7 @@ class PlayerVideo: NSObject {
     
     guard asset == player.currentItem else { return }
         
-    print("PLAAAYER: OBSERVER keyPath=\(keyPath), status=\(asset.status.rawValue), isPlaybackLikelyToKeepUp=\(asset.isPlaybackLikelyToKeepUp)")
+      log("OBSERVER keyPath=\(keyPath), status=\(asset.status.rawValue), isPlaybackLikelyToKeepUp=\(asset.isPlaybackLikelyToKeepUp)")
         
     if (keyPath == "status") {
         switch (asset.status) {
@@ -377,7 +411,7 @@ class PlayerVideo: NSObject {
   //
   
   private func buffering(isBuffering: Bool) {
-    print("PLAAAYER: buffering = \(isBuffering), status=\(status.print())")
+      log("buffering = \(isBuffering), status=\(status.print())")
       
     if (isBuffering) {
       if (status != .stoped && status != .error && status != .none) {
@@ -391,6 +425,7 @@ class PlayerVideo: NSObject {
   //
   
   fileprivate func seekToZero() {
+    log("videoPlayer seekToZero")
     let time = CMTime(seconds: 0.0, preferredTimescale: 1)
     player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
   }

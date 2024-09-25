@@ -78,7 +78,22 @@ function createStandalonePlayerVideoInstance() {
 
 function clearPlayerVideo() {
   if (PlayerVideoManager && PlayerVideoManager.clear) {
-    PlayerVideoManager.clear();
+    [0, 1, 2].forEach((id) => {
+      const isPlayerPlayingOrPaused =
+        PlayerInfo.lastStatus[id] === PlayerStatus.playing ||
+        PlayerInfo.lastStatus[id] === PlayerStatus.paused;
+
+      if (isPlayerPlayingOrPaused) {
+        eventEmitter.emit('PlayerStatusChanged', {
+          instance: id,
+          status: 5,
+        });
+
+        CurrentVideoId[id] = null;
+
+        PlayerVideoManager.stop(id);
+      }
+    });
   }
 }
 
@@ -93,9 +108,7 @@ function getVideoDuration(playerInstance = 0): Promise<number> {
 
     PlayerVideoManager.getDuration(playerInstance)
       .then((val) => resolve(val || 0))
-      .catch(() => {
-        resolve(0);
-      });
+      .catch(() => resolve(0));
   });
 }
 
@@ -110,9 +123,7 @@ function getVideoProgress(playerInstance = 0): Promise<number> {
 
     PlayerVideoManager.getProgress(playerInstance)
       .then((val) => resolve(val || 0))
-      .catch(() => {
-        resolve(0)
-      });
+      .catch(() => resolve(0));
   });
 }
 
@@ -236,11 +247,6 @@ const PlayerInfo = {
   ],
 };
 
-type PlayerStatusChangedData = {
-  instance: number;
-  status: number;
-};
-
 function usePlayerVideoStatus(playerInstance = 0, recordingId?: string) {
   // get current status
   const [status, setStatus] = useState(PlayerInfo.lastStatus[playerInstance]);
@@ -248,20 +254,19 @@ function usePlayerVideoStatus(playerInstance = 0, recordingId?: string) {
   useEffect(() => {
     const subscription = eventEmitter.addListener(
       'PlayerStatusChanged',
-      (data: PlayerStatusChangedData) => {
+      (data) => {
         if (data.instance === playerInstance) {
           if (!recordingId || recordingId === CurrentVideoId[playerInstance]) {
-            const newStatus = createStatus(data.status);
+            PlayerInfo.lastStatus[playerInstance] = createStatus(data.status);
 
-            PlayerInfo.lastStatus[playerInstance] = newStatus;
-            setStatus(newStatus);
+            setStatus(createStatus(data.status));
           }
         }
       }
     );
 
     return () => subscription.remove();
-  }, [playerInstance, recordingId, status]);
+  }, [playerInstance, recordingId]);
 
   const forceLoadingStatus = () => {
     setStatus(PlayerStatus.loading);
