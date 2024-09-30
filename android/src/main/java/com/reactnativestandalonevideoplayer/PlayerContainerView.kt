@@ -8,8 +8,6 @@ import android.view.SurfaceView
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.PlayerView
 
@@ -61,7 +59,6 @@ class PlayerContainerView: SimpleViewManager<MyPlayerView>() {
 
     view.player = if (view.isBound) PlayerVideo.instances[view.playerInstance].player else null
     view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-    (view.player as? SimpleExoPlayer)?.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
 
     //
     if (view.isBound) {

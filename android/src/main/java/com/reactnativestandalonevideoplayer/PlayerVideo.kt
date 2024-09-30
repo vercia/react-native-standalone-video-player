@@ -3,27 +3,18 @@ package com.reactnativestandalonevideoplayer
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.ExtractorMediaSource
-import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.util.Util
-import com.google.android.exoplayer2.video.VideoListener
+import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.exoplayer2.video.VideoSize
 
-
-//
-
-
-class PlayerVideo(val context: Context) {
-
+class PlayerVideo(private val context: Context) {
 
   private var status: PlayerVideoStatus = PlayerVideoStatus.none
 
@@ -32,9 +23,7 @@ class PlayerVideo(val context: Context) {
 
   private val PROGRESS_UPDATE_TIME: Long = 1000
 
-  //
-
-  val player = SimpleExoPlayer.Builder(context).build()
+  val player: ExoPlayer = ExoPlayer.Builder(context).setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING).build()
 
   var autoplay: Boolean = true
 
@@ -70,78 +59,58 @@ class PlayerVideo(val context: Context) {
         Log.d("PlayerVideo", "DURRRRR: TIME_UNSET")
         return 0.0
       }
-
       val dur = player.duration.toDouble()
-
-      Log.d("PlayerVideo", "DURRRRR: ${dur}")
+      Log.d("PlayerVideo", "DURRRRR: $dur")
       return dur
     }
-    set(value){}
+    set(_) {}
 
   var position: Double
     get() = player.currentPosition.toDouble()
-    set(value){}
+    set(_) {}
 
   var progress: Double
-    get() {
-      if (player.duration > 0) {
-        return player.currentPosition.toDouble() / player.duration.toDouble()
-      }
-
-      return 0.0
-    }
-    set(value) {}
-
-  //
+    get() = if (player.duration > 0) player.currentPosition.toDouble() / player.duration.toDouble() else 0.0
+    set(_) {}
 
   fun loadVideo(url: String, isHls: Boolean, loop: Boolean) {
-    Log.d("PlayerVideo", "load = ${url}")
+    Log.d("PlayerVideo", "load = $url")
 
-    // Produces DataSource instances through which media data is loaded.
-    val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
-      context,
-      Util.getUserAgent(context, context.packageName)
-    )
+    val dataSourceFactory = DefaultDataSource.Factory(context)
 
-    // This is the MediaSource representing the media to be played.
-    val hlsMediaSource = HlsMediaSource.Factory(dataSourceFactory)
-      .createMediaSource(Uri.parse(url))
+    val mediaItem = MediaItem.fromUri(Uri.parse(url))
+    val mediaSource = if (isHls) {
+      HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+    } else {
+      ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+    }
 
-    val httpMediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-      .createMediaSource(Uri.parse(url))
-
-    val mediaSource = if(isHls) hlsMediaSource else httpMediaSource
-
-    // Prepare the player with the source.
-    player.prepare(mediaSource)
+    player.setMediaSource(mediaSource)
+    player.prepare()
 
     player.playWhenReady = autoplay
-    player.repeatMode = if(loop) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
-    player.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
+    player.repeatMode = if (loop) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
 
     setStatus(PlayerVideoStatus.new)
 
-    // listeners
-    player.addListener(object: Player.EventListener {
+    player.addListener(object : Player.Listener {
       override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        Log.d("PlayerVideo", "onPlayerStateChanged = ${playbackState}")
-
-        when(playbackState) {
+        Log.d("PlayerVideo", "onPlaybackStateChanged = $playbackState")
+        when (playbackState) {
           Player.STATE_IDLE -> setStatus(PlayerVideoStatus.none)
           Player.STATE_BUFFERING -> setStatus(PlayerVideoStatus.loading)
-          Player.STATE_READY -> setStatus(if(player.playWhenReady) PlayerVideoStatus.playing else PlayerVideoStatus.paused)
+          Player.STATE_READY -> setStatus(if (player.playWhenReady) PlayerVideoStatus.playing else PlayerVideoStatus.paused)
           Player.STATE_ENDED -> {
             setStatus(PlayerVideoStatus.finished)
             stopProgressTimer()
           }
         }
       }
-    })
 
-    player.addVideoListener(object: VideoListener {
-      override fun onVideoSizeChanged(width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
-        Log.d("PlayerView", "onVideoSizeChanged width=${width}, height=${height}")
-        videoSizeChanged?.invoke(width, height)
+      override fun onVideoSizeChanged(videoSize: VideoSize) {
+        super.onVideoSizeChanged(videoSize)
+        Log.d("PlayerVideo", "onVideoSizeChanged width=${videoSize.width}, height=${videoSize.height}")
+        videoSizeChanged?.invoke(videoSize.width, videoSize.height)
       }
     })
 
@@ -150,49 +119,38 @@ class PlayerVideo(val context: Context) {
 
   fun play() {
     Log.d("PlayerVideo", "play")
-
-    if (status === PlayerVideoStatus.finished) {
+    if (status == PlayerVideoStatus.finished) {
       seek(0.0)
     }
-
-    player.playWhenReady = true
-
+    player.play()
     startProgressTimer()
   }
 
   fun pause() {
     Log.d("PlayerVideo", "pause")
-
-    player.playWhenReady = false
-
+    player.pause()
     stopProgressTimer()
   }
 
   fun stop() {
     Log.d("PlayerVideo", "stop")
-
     player.stop()
-
     setStatus(PlayerVideoStatus.stopped)
-
     stopProgressTimer()
   }
 
   fun seek(progress: Double) {
-    Log.d("PlayerVideo", "seek: ${progress}")
-
+    Log.d("PlayerVideo", "seek: $progress")
     player.seekTo((duration * progress).toLong())
   }
 
   fun seekForward(time: Double) {
-    Log.d("PlayerVideo", "Seek forward position=${position}, by=${time*1000}")
-
+    Log.d("PlayerVideo", "Seek forward position=$position, by=${time*1000}")
     player.seekTo((position + time*1000).toLong())
   }
 
   fun seekRewind(time: Double) {
-    Log.d("PlayerVideo", "Seek rewind position=${position}, by=${time*1000}")
-
+    Log.d("PlayerVideo", "Seek rewind position=$position, by=${time*1000}")
     player.seekTo((position - time * 1000).toLong())
   }
 
@@ -200,34 +158,23 @@ class PlayerVideo(val context: Context) {
     player.release()
   }
 
-  //
-  // Private
-  //
-
-
   private fun setStatus(newStatus: PlayerVideoStatus) {
     status = newStatus
-
-    Log.d("PlayerVideo", "NEW status = ${status}")
-
+    Log.d("PlayerVideo", "NEW status = $status")
     statusChanged?.invoke(status)
-
     if (status == PlayerVideoStatus.stopped || status == PlayerVideoStatus.none || status == PlayerVideoStatus.error) {
       stopProgressTimer()
     }
   }
 
   private fun startProgressTimer() {
-    progressHandler = Handler()
-
-    progressRunnable = Runnable {
-      progressChanged?.invoke(progress, duration)
-
-      progressRunnable?.let {
-        progressHandler?.postDelayed(it, PROGRESS_UPDATE_TIME)
+    progressHandler = Handler(Looper.getMainLooper())
+    progressRunnable = object : Runnable {
+      override fun run() {
+        progressChanged?.invoke(progress, duration)
+        progressHandler?.postDelayed(this, PROGRESS_UPDATE_TIME)
       }
     }
-
     progressRunnable?.let {
       progressHandler?.postDelayed(it, 0)
     }
@@ -239,13 +186,10 @@ class PlayerVideo(val context: Context) {
     }
   }
 
-  //
-
   companion object {
     var instances: MutableList<PlayerVideo> = mutableListOf()
   }
 }
-
 
 enum class PlayerVideoStatus(val value: Int) {
   new(0),
@@ -253,12 +197,11 @@ enum class PlayerVideoStatus(val value: Int) {
   playing(2),
   paused(3),
   error(4),
-  stopped(5), // stopped by the user
+  stopped(5),
   none(6),
-  finished(7) // done playing
+  finished(7)
 }
 
-fun printPlayerStatus(status: PlayerVideoStatus) : String {
-  return ""
+fun printPlayerStatus(status: PlayerVideoStatus): String {
+  return status.name
 }
-
