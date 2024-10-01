@@ -57,7 +57,10 @@ class PlayerContainerView: SimpleViewManager<MyPlayerView>() {
       return
     }
 
-    view.player = if (view.isBound) PlayerVideo.instances[view.playerInstance].player else null
+    val currentPlayer = if (view.isBound) PlayerVideo.instances[view.playerInstance].player else null
+    view.player = currentPlayer
+
+    currentPlayer?.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
     view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
 
     //
