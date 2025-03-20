@@ -144,6 +144,14 @@ class PlayerVideo: NSObject {
   func load(url: String) {
       log("load url: \(url)")
 
+    // Configure AVAudioSession to play sound even in silent mode
+    do {
+        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback, options: [])
+        try AVAudioSession.sharedInstance().setActive(true)
+    } catch {
+        log("Failed to set AVAudioSession category: \(error.localizedDescription)")
+    }
+
     shouldPlay = autoplay
     
     guard let videoUrl = URL(string: url) else {
