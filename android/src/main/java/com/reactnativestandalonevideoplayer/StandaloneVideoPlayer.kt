@@ -197,7 +197,7 @@ class StandaloneVideoPlayer(val context: ReactApplicationContext): ReactContextB
     Handler(context.mainLooper).post {
       Log.d("PlayerVideo", "setVolume = ${volume}")
 
-      PlayerVideo.instances[instance].setVolume(volume)
+      PlayerVideo.instances[instance].volume = volume
     }
   }
 
