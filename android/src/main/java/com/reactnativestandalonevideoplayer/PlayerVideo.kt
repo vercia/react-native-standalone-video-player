@@ -126,11 +126,6 @@ class PlayerVideo(private val context: Context) {
     startProgressTimer()
   }
 
-  fun setVolume(volume: Float) {
-    Log.d("PlayerVideo", "setVolume")
-    player.setVolume(volume)
-  }
-
   fun pause() {
     Log.d("PlayerVideo", "pause")
     player.pause()
