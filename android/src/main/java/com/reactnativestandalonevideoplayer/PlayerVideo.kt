@@ -117,6 +117,11 @@ class PlayerVideo(private val context: Context) {
     startProgressTimer()
   }
 
+  fun setVolume(volume: Float) {
+    Log.d("PlayerVideo", "setVolume")
+    volume = volume
+  }
+
   fun play() {
     Log.d("PlayerVideo", "play")
     if (status == PlayerVideoStatus.finished) {
