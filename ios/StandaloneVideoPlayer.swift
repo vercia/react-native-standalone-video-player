@@ -16,6 +16,17 @@ class StandaloneVideoPlayer: RCTEventEmitter {
     }
     
     //
+  
+    @objc(setVolume:volume:)
+    func setVolume(instance: Int, volume: Float) {
+      guard instance >= 0 && instance < PlayerVideo.instances.count else { return }
+      
+      let player = PlayerVideo.instances[instance]
+
+      player.setVolume(volume: <#T##Float#>)
+    }
+
+    //
 
     @objc(load:withUrl:withHls:withLoop:withSilent:)
     func load(instance: Int, withUrl url: String, withHls hls: Bool, withLoop loop: Bool, withSilent silent: Bool) -> Void {
