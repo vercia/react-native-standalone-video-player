@@ -124,7 +124,7 @@ function getMuted(playerInstance = 0): Promise<boolean> {
 
     PlayerVideoManager.getMuted(playerInstance)
       .then((val) => resolve(val || false))
-      .catch(() => resolve(0));
+      .catch(() => resolve(false));
   });
 } 
 //
