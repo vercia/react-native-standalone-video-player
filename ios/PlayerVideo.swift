@@ -100,6 +100,9 @@ class PlayerVideo: NSObject {
   var progressChanged: ((_ newProgress: Double, _ duration: Double) -> ())?
   
   @objc
+  var muteChanged: ((Bool) -> Void)?
+  
+  @objc
   var statusChanged2: (() -> ())?
   
   @objc
@@ -196,6 +199,10 @@ class PlayerVideo: NSObject {
   @objc
   func setMuted(isMuted: Bool) {
     player.isMuted = isMuted
+  }
+  
+  @objc var isMuted: Bool {
+    return player.isMuted
   }
 
   @objc

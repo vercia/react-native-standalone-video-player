@@ -4,7 +4,7 @@ import Foundation
 class StandaloneVideoPlayer: RCTEventEmitter {
 
     override func supportedEvents() -> [String]! {
-        return ["PlayerStatusChanged", "PlayerProgressChanged"]
+        return ["PlayerStatusChanged", "PlayerProgressChanged", "PlayerMuteChanged"]
     }
 
     
@@ -55,6 +55,11 @@ class StandaloneVideoPlayer: RCTEventEmitter {
         player.progressChanged = { progress, duration in
             self.sendEvent(withName: "PlayerProgressChanged", body: ["progress" : progress, "duration" : duration, "instance": instance])
         }
+      
+      
+      player.muteChanged = { isMuted in
+             self.sendEvent(withName: "PlayerMuteChanged", body: ["isMuted": isMuted, "instance": instance])
+         }
         
         player.load(url: url)
     }

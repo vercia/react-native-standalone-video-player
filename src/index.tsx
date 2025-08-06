@@ -144,6 +144,35 @@ function getVideoProgress(playerInstance = 0): Promise<number> {
 
 //
 
+export function useMuted(playerInstance = 0) {
+  const [isMuted, setIsMuted] = useState(false);
+
+  const setMuted = useCallback((isMuted: boolean) => {
+    PlayerVideoManager.setMuted(playerInstance, isMuted);
+  }, [playerInstance]);
+
+   useEffect(() => {
+    const subscription = eventEmitter.addListener(
+      'PlayerMuteChanged',
+      (event) => {
+        if (event.instance === playerInstance) {
+          setIsMuted(event.isMuted);
+        }
+      }
+    );
+
+    return () => subscription.remove();
+  }, [playerInstance]);
+
+  useEffect(() => {
+    getMuted(playerInstance).then(setIsMuted);
+  }, [playerInstance]);
+
+  return {isMuted,setMuted};
+}
+
+//
+
 function useVideoPlayer(playerInstance = 0) {
   const [isMuted, setIsMuted] = useState(false);
 
