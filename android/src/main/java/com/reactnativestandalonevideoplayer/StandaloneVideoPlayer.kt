@@ -188,16 +188,46 @@ class StandaloneVideoPlayer(val context: ReactApplicationContext): ReactContextB
     }
   }
 
+//  @ReactMethod
+//  fun setMuted(instance: Int, isMuted: Boolean) {
+//    if (instance < 0 || instance >= PlayerVideo.instances.size) {
+//      return
+//    }
+//
+//    Handler(context.mainLooper).post {
+//      Log.d("PlayerVideo", "setMuted = ${isMuted}")
+//
+//      PlayerVideo.instances[instance].volume = volume
+//    }
+//  }
+
   @ReactMethod
-  fun setVolume(instance: Int, volume: Float) {
+  fun setMuted(instance: Int, isMuted: Boolean) {
     if (instance < 0 || instance >= PlayerVideo.instances.size) {
       return
     }
 
     Handler(context.mainLooper).post {
-      Log.d("PlayerVideo", "setVolume = ${volume}")
+      Log.d("PlayerVideo", "setMuted by = ${isMuted}")
 
-      PlayerVideo.instances[instance].volume = volume
+      PlayerVideo.instances[instance].setMuted(isMuted)
+
+      val params: WritableMap = Arguments.createMap()
+      params.putInt("instance", instance)
+      params.putBoolean("isMuted", isMuted)
+
+      context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        .emit("PlayerMuteChanged", params)
+    }
+  }
+
+  @ReactMethod
+  fun getMuted(instance: Int, promise: Promise) {
+    if (instance >= 0 && instance < PlayerVideo.instances.size) {
+      val muted: Boolean = PlayerVideo.instances[instance].isMuted()
+      promise.resolve(muted)
+    } else {
+      promise.resolve(false)
     }
   }
 

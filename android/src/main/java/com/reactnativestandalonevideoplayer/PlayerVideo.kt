@@ -139,6 +139,12 @@ class PlayerVideo(private val context: Context) {
     stopProgressTimer()
   }
 
+  fun setMuted(isMuted: Boolean) {
+    Log.d("PlayerVideo", "setMuted: $isMuted")
+    player.volume = if (isMuted) 0f else 1f
+  }
+
+
   fun seek(progress: Double) {
     Log.d("PlayerVideo", "seek: $progress")
     player.seekTo((duration * progress).toLong())
