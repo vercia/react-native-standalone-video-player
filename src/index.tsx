@@ -22,7 +22,7 @@ type StandaloneVideoPlayerType = {
   ): void;
 
   setMuted(instance:number, isMuted: boolean): void;
-  getMuted(instance:number): void;
+  getMuted(instance:number): Promise<boolean>
 
   seek(instance: number, position: number): void;
 
@@ -115,6 +115,20 @@ function getVideoDuration(playerInstance = 0): Promise<number> {
 
 //
 
+function getMuted(playerInstance = 0): Promise<bolean> {
+  return new Promise((resolve) => {
+    if (!PlayerVideoManager.getMuted) {
+      console.warn('getMuted not implemented');
+      resolve(false);
+    }
+
+    PlayerVideoManager.getMuted(playerInstance)
+      .then((val) => resolve(val || false))
+      .catch(() => resolve(0));
+  });
+} 
+//
+
 function getVideoProgress(playerInstance = 0): Promise<number> {
   return new Promise((resolve) => {
     if (!PlayerVideoManager.getProgress) {
@@ -132,7 +146,7 @@ function getVideoProgress(playerInstance = 0): Promise<number> {
 
 function useVideoPlayer(playerInstance = 0) {
   const [isMuted, setIsMuted] = useState(0);
-  
+
   const play = useCallback(() => {
     PlayerVideoManager.play(playerInstance);
   }, [playerInstance]);
@@ -220,13 +234,6 @@ function useVideoPlayer(playerInstance = 0) {
   const setMuted = useCallback((isMuted: boolean) => {
     PlayerVideoManager.setMuted(playerInstance, isMuted);
   }, [playerInstance]);
-
-  const getMuted = useCallback(() => {
-    PlayerVideoManager.getMuted(playerInstance);
-  }, [playerInstance]);
-
-
-  
 
   useEffect(() => {
     getMuted(playerInstance).then(setIsMuted);
