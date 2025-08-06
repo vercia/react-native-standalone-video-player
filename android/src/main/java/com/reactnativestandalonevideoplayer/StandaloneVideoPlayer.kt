@@ -222,16 +222,6 @@ class StandaloneVideoPlayer(val context: ReactApplicationContext): ReactContextB
   }
 
   @ReactMethod
-  fun getMuted(instance: Int, promise: Promise) {
-    if (instance >= 0 && instance < PlayerVideo.instances.size) {
-      val muted: Boolean = PlayerVideo.instances[instance].isMuted()
-      promise.resolve(muted)
-    } else {
-      promise.resolve(false)
-    }
-  }
-
-  @ReactMethod
   fun getDuration(instance: Int, promise: Promise) {
     if (instance < 0 || instance >= PlayerVideo.instances.size) {
       promise.resolve(0)
