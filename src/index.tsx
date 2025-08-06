@@ -115,7 +115,7 @@ function getVideoDuration(playerInstance = 0): Promise<number> {
 
 //
 
-function getMuted(playerInstance = 0): Promise<bolean> {
+function getMuted(playerInstance = 0): Promise<boolean> {
   return new Promise((resolve) => {
     if (!PlayerVideoManager.getMuted) {
       console.warn('getMuted not implemented');
