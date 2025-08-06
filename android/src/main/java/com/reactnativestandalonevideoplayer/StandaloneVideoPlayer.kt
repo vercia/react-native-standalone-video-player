@@ -197,15 +197,16 @@ class StandaloneVideoPlayer(val context: ReactApplicationContext): ReactContextB
     Handler(context.mainLooper).post {
       Log.d("PlayerVideo", "setMuted by = ${isMuted}")
 
-//      PlayerVideo.instances[instance].volume = if (isMuted) 0f else 1f
-      PlayerVideo.instances[instance].setMuted(isMuted)
+      PlayerVideo.instances[instance].muteChanged = { isMuted ->
+        Log.d("PlayerVideo", "isMuted = ${isMuted}")
 
-      val params: WritableMap = Arguments.createMap()
-      params.putInt("instance", instance)
-      params.putBoolean("isMuted", isMuted)
+        val map = Arguments.createMap()
+        map.putInt("instance", instance)
+        map.putDouble("isMuted", isMuted)
 
-      context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        .emit("PlayerMuteChanged", params)
+        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+          .emit("PlayerMuteChanged", map)
+      }
     }
   }
 

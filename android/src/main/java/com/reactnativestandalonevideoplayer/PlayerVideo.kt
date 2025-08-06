@@ -25,7 +25,9 @@ class PlayerVideo(private val context: Context) {
 
   private val PROGRESS_UPDATE_TIME: Long = 1000
 
-  val player: ExoPlayer = ExoPlayer.Builder(context).setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING).build()
+  val player: ExoPlayer = ExoPlayer.Builder(context).setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING).build().apply {
+    volume = 1f
+  }
 
   var autoplay: Boolean = true
 
@@ -34,6 +36,8 @@ class PlayerVideo(private val context: Context) {
   var progressChanged: ((progress: Double, duration: Double) -> Unit)? = null
 
   var videoSizeChanged: ((width: Int, height: Int) -> Unit)? = null
+
+  var muteChanged: ((isMuted: Boolean) -> Unit)? = null
 
   var currentStatus: PlayerVideoStatus
     get() = status
@@ -86,6 +90,10 @@ class PlayerVideo(private val context: Context) {
     } else {
       ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
     }
+
+    muted = false
+    player.volume = 1f
+    muteChanged?.invoke(false)
 
     player.setMediaSource(mediaSource)
     player.prepare()
@@ -146,6 +154,7 @@ class PlayerVideo(private val context: Context) {
     if (player != null) {
       player.volume = if (isMuted) 0f else 1f
     }
+    muteChanged?.invoke(isMuted)
   }
 
 
