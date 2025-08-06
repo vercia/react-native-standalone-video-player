@@ -20,6 +20,8 @@ class PlayerVideo(private val context: Context) {
 
   private var progressHandler: Handler? = null
   private var progressRunnable: Runnable? = null
+  private var muted = false
+
 
   private val PROGRESS_UPDATE_TIME: Long = 1000
 
@@ -140,8 +142,15 @@ class PlayerVideo(private val context: Context) {
   }
 
   fun setMuted(isMuted: Boolean) {
-    Log.d("PlayerVideo", "setMuted: $isMuted")
-    player.volume = if (isMuted) 0f else 1f
+    muted = isMuted
+    if (player != null) {
+      player.volume = if (isMuted) 0f else 1f
+    }
+  }
+
+
+  fun isMuted(): Boolean {
+    return muted
   }
 
 
