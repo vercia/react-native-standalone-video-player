@@ -22,7 +22,7 @@ class StandaloneVideoPlayer: RCTEventEmitter {
       DispatchQueue.main.async {
         guard instance >= 0 && instance < PlayerVideo.instances.count else { return }
         
-        PlayerVideo.instances[instance].setMuted(isMuted: <#T##Bool#>)
+        PlayerVideo.instances[instance].setMuted(isMuted: isMuted)
       }
   }
 
