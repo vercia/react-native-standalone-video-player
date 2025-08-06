@@ -188,19 +188,6 @@ class StandaloneVideoPlayer(val context: ReactApplicationContext): ReactContextB
     }
   }
 
-//  @ReactMethod
-//  fun setMuted(instance: Int, isMuted: Boolean) {
-//    if (instance < 0 || instance >= PlayerVideo.instances.size) {
-//      return
-//    }
-//
-//    Handler(context.mainLooper).post {
-//      Log.d("PlayerVideo", "setMuted = ${isMuted}")
-//
-//      PlayerVideo.instances[instance].volume = volume
-//    }
-//  }
-
   @ReactMethod
   fun setMuted(instance: Int, isMuted: Boolean) {
     if (instance < 0 || instance >= PlayerVideo.instances.size) {
@@ -210,7 +197,8 @@ class StandaloneVideoPlayer(val context: ReactApplicationContext): ReactContextB
     Handler(context.mainLooper).post {
       Log.d("PlayerVideo", "setMuted by = ${isMuted}")
 
-      PlayerVideo.instances[instance].setMuted(isMuted)
+      PlayerVideo.instances[instance].volume = if (isMuted) 0f else 1f
+//      PlayerVideo.instances[instance].setMuted(isMuted)
 
       val params: WritableMap = Arguments.createMap()
       params.putInt("instance", instance)
