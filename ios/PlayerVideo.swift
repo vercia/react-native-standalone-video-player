@@ -199,10 +199,7 @@ class PlayerVideo: NSObject {
   @objc
   func setMuted(isMuted: Bool) {
     player.isMuted = isMuted
-  }
-  
-  @objc var isMuted: Bool {
-    return player.isMuted
+    muteChanged?(isMuted)
   }
 
   @objc

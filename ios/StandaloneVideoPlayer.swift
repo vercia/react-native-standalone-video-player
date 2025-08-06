@@ -17,12 +17,21 @@ class StandaloneVideoPlayer: RCTEventEmitter {
     
     //
   
+  
   @objc(setMuted:isMuted:)
   func setMuted(instance: Int, isMuted: Bool) {
-      DispatchQueue.main.async {
-        guard instance >= 0 && instance < PlayerVideo.instances.count else { return }
-        
-        PlayerVideo.instances[instance].setMuted(isMuted: isMuted)
+      guard instance >= 0 && instance < PlayerVideo.instances.count else { return }
+      let player = PlayerVideo.instances[instance]
+
+      player.setMuted(isMuted: isMuted)
+
+      if player.muteChanged == nil {
+          player.muteChanged = { isMuted in
+              self.sendEvent(withName: "PlayerMuteChanged", body: [
+                  "isMuted": isMuted,
+                  "instance": instance
+              ])
+          }
       }
   }
 
@@ -55,11 +64,6 @@ class StandaloneVideoPlayer: RCTEventEmitter {
         player.progressChanged = { progress, duration in
             self.sendEvent(withName: "PlayerProgressChanged", body: ["progress" : progress, "duration" : duration, "instance": instance])
         }
-      
-      
-      player.muteChanged = { isMuted in
-             self.sendEvent(withName: "PlayerMuteChanged", body: ["isMuted": isMuted, "instance": instance])
-         }
         
         player.load(url: url)
     }
