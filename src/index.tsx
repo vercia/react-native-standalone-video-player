@@ -145,7 +145,7 @@ function getVideoProgress(playerInstance = 0): Promise<number> {
 //
 
 function useVideoPlayer(playerInstance = 0) {
-  const [isMuted, setIsMuted] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   const play = useCallback(() => {
     PlayerVideoManager.play(playerInstance);
