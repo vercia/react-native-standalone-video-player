@@ -193,11 +193,14 @@ class PlayerVideo: NSObject {
     setStatus(.paused)
   }
   
+  @objc(setMuted:)
+  func setMuted(isMuted: Bool) {
+    player.isMuted = isMuted
+  }
+
   @objc
-  func setVolume(volume: Float) {
-    log("setVolume")
-    
-    player.volume=volume
+  func getMuted() -> Bool {
+      return player.isMuted
   }
   
   @objc

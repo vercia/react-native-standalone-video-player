@@ -21,7 +21,8 @@ type StandaloneVideoPlayerType = {
     isSilent: boolean
   ): void;
 
-  setVolume(instance:number, volume: number): void;
+  setMuted(instance:number, isMuted: boolean): void;
+  getMuted(instance:number): void;
 
   seek(instance: number, position: number): void;
 
@@ -130,6 +131,8 @@ function getVideoProgress(playerInstance = 0): Promise<number> {
 //
 
 function useVideoPlayer(playerInstance = 0) {
+  const [isMuted, setIsMuted] = useState(0);
+  
   const play = useCallback(() => {
     PlayerVideoManager.play(playerInstance);
   }, [playerInstance]);
@@ -214,14 +217,24 @@ function useVideoPlayer(playerInstance = 0) {
     return CurrentVideoId[playerInstance];
   }, [playerInstance]);
 
-  const setVolume = useCallback((volume: number) => {
-    // not the best way to return global var here...
-    PlayerVideoManager.setVolume(playerInstance, volume);
+  const setMuted = useCallback((isMuted: boolean) => {
+    PlayerVideoManager.setMuted(playerInstance, isMuted);
+  }, [playerInstance]);
+
+  const getMuted = useCallback(() => {
+    PlayerVideoManager.getMuted(playerInstance);
+  }, [playerInstance]);
+
+
+  
+
+  useEffect(() => {
+    getMuted(playerInstance).then(setIsMuted);
   }, [playerInstance]);
 
   return useMemo(
     () => ({
-      setVolume,
+      setMuted,
       play,
       pause,
       stop,
@@ -230,8 +243,9 @@ function useVideoPlayer(playerInstance = 0) {
       seekForward,
       seekRewind,
       getCurrentVideoId,
+      isMuted
     }),
-    [getCurrentVideoId, load, pause, play, seek, seekForward, seekRewind, stop]
+    [getCurrentVideoId, load, pause, play, seek, seekForward, seekRewind, stop, setMuted, isMuted]
   );
 }
 

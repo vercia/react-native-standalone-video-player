@@ -17,12 +17,27 @@ class StandaloneVideoPlayer: RCTEventEmitter {
     
     //
   
-    @objc(setVolume:volume:)
-    func setVolume(instance: Int, volume: Float) {
-      guard instance >= 0 && instance < PlayerVideo.instances.count else { return }
+  @objc(setMuted:isMuted:)
+  func setMuted(instance: Int, isMuted: Bool) {
+      DispatchQueue.main.async {
+        guard instance >= 0 && instance < PlayerVideo.instances.count else { return }
+        
+        PlayerVideo.instances[instance].setMuted(isMuted: <#T##Bool#>)
+      }
+  }
+
+  //
+  
+  @objc(getMuted:resolver:rejecter:)
+  func getMuted(instance: Int, resolver resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
+      guard instance >= 0 && instance < PlayerVideo.instances.count else {
+        resolve(0)
+        return
+      }
       
-      PlayerVideo.instances[instance].setVolume(volume: volume)
-    }
+      let isMuted = PlayerVideo.instances[instance].player.isMuted
+      resolve(isMuted)
+  }
 
     //
 
